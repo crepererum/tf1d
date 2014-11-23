@@ -125,7 +125,9 @@ void send_diff(const struct input_data* current, const struct input_data* last, 
     }
 
     int error = snd_rawmidi_drain(midi_to);
-    printf("Res = %i\n", error);
+    if (error) {
+        printf("Midi write error! (%s)", snd_strerror(error));
+    }
 }
 
 void parse_input(unsigned char* data, struct input_data* input) {
@@ -245,7 +247,12 @@ int main() {
     while (running) {
         error = libusb_bulk_transfer(handle, endpoint_address_in, input_buffer, BUFFER_IN_SIZE, &size_transfered, 500);
         if (error && error != LIBUSB_ERROR_TIMEOUT) {
-            printf("Transfer error (%s)\n", libusb_error_name(error));
+            printf("Transfer error! (%s)\n", libusb_error_name(error));
+        }
+
+        if (error == LIBUSB_ERROR_NO_DEVICE) {
+            printf("Shut down.\n");
+            running = false;
         }
 
         if (size_transfered == 22) {

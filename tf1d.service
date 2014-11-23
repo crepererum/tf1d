@@ -1,0 +1,6 @@
+[Unit]
+Description=Traktor F1 userspace driver
+
+[Service]
+ExecStart=__INSTALL_PATH__/bin/tf1d
+

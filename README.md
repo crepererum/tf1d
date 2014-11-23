@@ -5,8 +5,13 @@ This is a userspace driver for Linux that translates the proprietary USB protoco
  - ALSA
  - libusb1.0
 
+## Installation
+Just make it:
+
+    make install
+
 ## Usage
-Plug in your F1 and start the daemon as root. No you can use it as an input device or use ALSA or Jack to route the midi signal. For Bitwig, you can use the [ALSA Virtual MIDI Script](http://www.bitwig.com/en/community/control_scripts/alsa/virtualmidi/virtualmidi_1.html).
+Plug in your F1 and udev+systemd will start the daemon. Now you can use it as an input device or use ALSA or Jack to route the midi signal. For Bitwig, you can use the [ALSA Virtual MIDI Script](http://www.bitwig.com/en/community/control_scripts/alsa/virtualmidi/virtualmidi_1.html).
 
 ## FAQ
 Some clarifications.

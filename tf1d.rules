@@ -1,0 +1,7 @@
+SUBSYSTEM!="hid", GOTO="tf1d_rules_end"
+ACTION!="add", GOTO="tf1d_rules_end"
+SUBSYSTEM=="hid", ENV{HID_ID}=="0003:000017CC:00001120",\
+    TAG+="systemd",\
+    ENV{SYSTEMD_WANTS}="tf1d.service"
+LABEL="tf1d_rules_end"
+

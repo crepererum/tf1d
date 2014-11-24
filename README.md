@@ -13,8 +13,8 @@ Just make it:
 
 To use the F1 without rebooting, you need to reload systemd and udev rules:
 
-    systemctl daemon-reload
-    udevadm control --reload-rules
+    sudo systemctl daemon-reload
+    sudo udevadm control --reload-rules
 
 Now plug in (or replug) your F1 and have fun!
 

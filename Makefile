@@ -19,8 +19,13 @@ install: build tf1d.rules
 	install target/tf1d.service $(INSTALL_PATH)/lib/systemd/system/tf1d.service
 	install tf1d.rules $(INSTALL_PATH)/lib/udev/rules.d/50-tf1d.rules
 
+uninstall:
+	rm -f $(INSTALL_PATH)/lib/udev/rules.d/50-tf1d.rules
+	rm -f $(INSTALL_PATH)/lib/systemd/system/tf1d.service
+	rm -f $(INSTALL_PATH)/bin/tf1d
+
 clean:
 	rm -rf target
 
-.PHONY: all build clean install
+.PHONY: all build clean install uninstall
 

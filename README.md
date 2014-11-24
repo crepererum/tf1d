@@ -39,3 +39,6 @@ Not yet. I have a working Python prototype which is able to control all the fanc
 ### Are the mappings identical to the official Windows/OSX version?
 No, but if you provide me a complete list of the mapping, I will change the code to match it.
 
+## Is it possible to use mulitple F1 units?
+Currently not. This would require some modification and testing. So if you send a pull request or another F1 unit to me, I will fix that.
+

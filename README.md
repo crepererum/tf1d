@@ -8,7 +8,15 @@ This is a userspace driver for Linux that translates the proprietary USB protoco
 ## Installation
 Just make it:
 
-    make install
+    make build
+    sudo make install
+
+To use the F1 without rebooting, you need to reload systemd and udev rules:
+
+    systemctl daemon-reload
+    udevadm control --reload-rules
+
+Now plug in (or replug) your F1 and have fun!
 
 ## Usage
 Plug in your F1 and udev+systemd will start the daemon. Now you can use it as an input device or use ALSA or Jack to route the midi signal. For Bitwig, you can use the [ALSA Virtual MIDI Script](http://www.bitwig.com/en/community/control_scripts/alsa/virtualmidi/virtualmidi_1.html).

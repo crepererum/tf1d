@@ -1,7 +1,10 @@
+#define _GNU_SOURCE
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <pthread.h>
 #include <signal.h>
 
 #include <alsa/asoundlib.h>
@@ -24,6 +27,12 @@ struct input_data {
     bool selector_pressed;
     unsigned char sliders[4];
     bool stops[4];
+};
+
+struct input_thread_parameters {
+    libusb_device_handle* handle;
+    uint8_t endpoint_address_in;
+    snd_rawmidi_t* midi_to;
 };
 
 static bool volatile running = true;
@@ -186,6 +195,34 @@ void parse_input(unsigned char* data, struct input_data* input) {
     input->sliders[3] = ((unsigned int)data[21] * 255u + (unsigned int)data[20]) / 16u;
 }
 
+void* thread_input(void* data) {
+    struct input_thread_parameters* params = (struct input_thread_parameters*)data;
+    unsigned char input_buffer[BUFFER_IN_SIZE];
+    int size_transfered;
+    struct input_data last;
+    int error;
+
+    while (running) {
+        error = libusb_bulk_transfer(params->handle, params->endpoint_address_in, input_buffer, BUFFER_IN_SIZE, &size_transfered, 500);
+        if (error && error != LIBUSB_ERROR_TIMEOUT) {
+            printf("Transfer error! (%s)\n", libusb_error_name(error));
+        }
+
+        if (error == LIBUSB_ERROR_NO_DEVICE) {
+            running = false;
+        }
+
+        if (size_transfered == 22) {
+            struct input_data next;
+            parse_input(input_buffer, &next);
+            send_diff(&next, &last, params->midi_to);
+            last = next;
+        }
+    }
+
+    pthread_exit(NULL);
+}
+
 int main() {
     int error;
 
@@ -239,29 +276,26 @@ int main() {
 
     // setup interrupt handler
     signal(SIGINT, int_handler);
+    signal(SIGTERM, int_handler);
 
-    // main loop
-    unsigned char input_buffer[BUFFER_IN_SIZE];
-    int size_transfered;
-    struct input_data last;
-    while (running) {
-        error = libusb_bulk_transfer(handle, endpoint_address_in, input_buffer, BUFFER_IN_SIZE, &size_transfered, 500);
-        if (error && error != LIBUSB_ERROR_TIMEOUT) {
-            printf("Transfer error! (%s)\n", libusb_error_name(error));
-        }
-
-        if (error == LIBUSB_ERROR_NO_DEVICE) {
-            printf("Shut down.\n");
-            running = false;
-        }
-
-        if (size_transfered == 22) {
-            struct input_data next;
-            parse_input(input_buffer, &next);
-            send_diff(&next, &last, midi_to);
-            last = next;
-        }
+    // configure pthread and run worker threads
+    pthread_attr_t thread_attr;
+    pthread_attr_init(&thread_attr);
+    pthread_attr_setdetachstate(&thread_attr, PTHREAD_CREATE_JOINABLE);
+    struct input_thread_parameters params_input = {handle, endpoint_address_in, midi_to};
+    pthread_t tinput;
+    error = pthread_create(&tinput, &thread_attr, thread_input, (void*)&params_input);
+    if (error) {
+        printf("Cannot create thread! (%i)\n", error);
+        libusb_close(handle);
+        libusb_exit(NULL);
+        return EXIT_FAILURE;
     }
+    pthread_setname_np(tinput, "tf1d - Input Worker Thread");
+
+    // wait for finish
+    pthread_join(tinput, NULL);
+    printf("Shut down.\n");
 
     // clean up
     snd_rawmidi_close(midi_to);

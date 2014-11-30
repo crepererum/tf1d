@@ -7,7 +7,7 @@ build: target/tf1d target/tf1d.service
 
 target/tf1d: tf1d.c
 	mkdir -p target
-	$(CC) -std=gnu99 -O2 -lasound -lusb-1.0 -o target/tf1d tf1d.c
+	$(CC) -std=gnu99 -O2 -lasound -lusb-1.0 -pthread -o target/tf1d tf1d.c
 
 target/tf1d.service: tf1d.service
 	mkdir -p target
